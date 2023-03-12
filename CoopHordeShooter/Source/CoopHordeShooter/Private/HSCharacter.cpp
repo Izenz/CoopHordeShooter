@@ -42,6 +42,8 @@ void AHSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AHSCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AHSCharacter::MoveRight);
-
+	
+	PlayerInputComponent->BindAxis("LookUp", this, &AHSCharacter::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("Turn", this, &AHSCharacter::AddControllerYawInput);
 }
 
