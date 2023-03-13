@@ -17,6 +17,9 @@ AHSCharacter::AHSCharacter()
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
+	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
+	JumpMaxHoldTime = 0.2f;
+
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
 }
@@ -48,11 +51,25 @@ void AHSCharacter::EndCrouch()
 	UnCrouch();
 }
 
+void AHSCharacter::BeginJump()
+{
+	Jump();
+}
+
+void AHSCharacter::EndJump()
+{
+	StopJumping();
+}
+
 // Called every frame
 void AHSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bWasJumping)
+	{
+		JumpKeyHoldTime += DeltaTime;
+	}
 }
 
 // Called to bind functionality to input
@@ -68,6 +85,9 @@ void AHSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AHSCharacter::BeginCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AHSCharacter::EndCrouch);
+
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AHSCharacter::BeginJump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AHSCharacter::EndJump);
 
 }
 
