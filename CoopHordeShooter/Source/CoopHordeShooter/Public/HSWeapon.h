@@ -7,6 +7,8 @@
 #include "HSWeapon.generated.h"
 
 class USkeletalMeshComponent;
+class UDamageType;
+class UParticleSystem;
 
 UCLASS()
 class COOPHORDESHOOTER_API AHSWeapon : public AActor
@@ -23,6 +25,31 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* MeshComp;
+
+	float BulletRange = 10000;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void Shoot();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TSubclassOf<UDamageType> DamageType;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	FName MuzzleSocketName;
+	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	FName TracerTargetName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* MuzzleVFX;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* ImpactVFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* BulletTrailVFX;
+
+
 
 public:	
 	// Called every frame

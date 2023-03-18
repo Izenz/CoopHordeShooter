@@ -91,3 +91,13 @@ void AHSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 }
 
+FVector AHSCharacter::GetPawnViewLocation() const
+{
+	if (CameraComp)
+	{
+		return CameraComp->GetComponentLocation();
+	}
+
+	return Super::GetPawnViewLocation();
+}
+
