@@ -29,7 +29,7 @@ protected:
 	float BulletRange = 10000;
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void Shoot();
+	virtual void Shoot();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<UDamageType> DamageType;
