@@ -7,10 +7,17 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 
+static int32 DebugWeaponDrawing = 0;
+FAutoConsoleVariableRef CVARDebugWeaponDrawing(
+	TEXT("COOP.DebugWeapons"),
+	DebugWeaponDrawing,
+	TEXT("Draws Debug Lines for Weapons"),
+	ECVF_Cheat);
+
 // Sets default values
 AHSWeapon::AHSWeapon()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
@@ -24,13 +31,13 @@ AHSWeapon::AHSWeapon()
 void AHSWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 void AHSWeapon::Shoot()
 {
 	// Trade the world from pawn eyes to crosshair location
-	
+
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
 	{
@@ -39,7 +46,7 @@ void AHSWeapon::Shoot()
 		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
 		FVector ShotDirection = EyeRotation.Vector();
-		
+
 		FVector TraceEnd = EyeLocation + (ShotDirection * BulletRange);
 
 		FCollisionQueryParams QueryParams;
@@ -66,7 +73,7 @@ void AHSWeapon::Shoot()
 			BulletTrailEndPoint = Hit.ImpactPoint;
 		}
 
-		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
+		if(DebugWeaponDrawing > 0)		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
 
 		if (MuzzleVFX)
 		{
@@ -85,7 +92,7 @@ void AHSWeapon::Shoot()
 		}
 	}
 
-	
+
 }
 
 // Called every frame
