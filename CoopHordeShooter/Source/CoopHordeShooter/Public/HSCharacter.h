@@ -8,6 +8,7 @@
 
 class UCameraComponent;
 class USpringArmComponent;
+class AHSWeapon;
 
 UCLASS()
 class COOPHORDESHOOTER_API AHSCharacter : public ACharacter
@@ -53,6 +54,16 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player", meta = (ClampMin = 0.1, ClampMax = 100))
 	float ZoomInterpSpeed;
+
+	AHSWeapon* CurrentWeapon;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	TSubclassOf<AHSWeapon> StarterWeaponClass;
+
+	void Shoot();
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
+	FName WeaponAttachSocketName;
 
 public:	
 	// Called every frame

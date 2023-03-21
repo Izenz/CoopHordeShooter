@@ -17,9 +17,6 @@ FAutoConsoleVariableRef CVARDebugWeaponDrawing(
 // Sets default values
 AHSWeapon::AHSWeapon()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	RootComponent = MeshComp;
 
@@ -27,17 +24,8 @@ AHSWeapon::AHSWeapon()
 	TracerTargetName = "Target";
 }
 
-// Called when the game starts or when spawned
-void AHSWeapon::BeginPlay()
-{
-	Super::BeginPlay();
-
-}
-
 void AHSWeapon::Shoot()
 {
-	// Trade the world from pawn eyes to crosshair location
-
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
 	{
@@ -75,30 +63,38 @@ void AHSWeapon::Shoot()
 
 		if(DebugWeaponDrawing > 0)		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
 
-		if (MuzzleVFX)
-		{
-			UGameplayStatics::SpawnEmitterAttached(MuzzleVFX, MeshComp, MuzzleSocketName);
-		}
-
-		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
-
-		if (BulletTrailVFX)
-		{
-			UParticleSystemComponent* TrailComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailVFX, MuzzleLocation);
-			if (TrailComp)
-			{
-				TrailComp->SetVectorParameter("Target", BulletTrailEndPoint);
-			}
-		}
+		PlayShootVFX(BulletTrailEndPoint);
 	}
 
 
 }
 
-// Called every frame
-void AHSWeapon::Tick(float DeltaTime)
+void AHSWeapon::PlayShootVFX(FVector BulletTrailEndPoint)
 {
-	Super::Tick(DeltaTime);
+	if (MuzzleVFX)
+	{
+		UGameplayStatics::SpawnEmitterAttached(MuzzleVFX, MeshComp, MuzzleSocketName);
+	}
 
+	FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+
+	if (BulletTrailVFX)
+	{
+		UParticleSystemComponent* TrailComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailVFX, MuzzleLocation);
+		if (TrailComp)
+		{
+			TrailComp->SetVectorParameter("Target", BulletTrailEndPoint);
+		}
+	}
+
+	APawn* MyOwner = Cast<APawn>(GetOwner());
+	if (MyOwner)
+	{
+		APlayerController* PC = Cast<APlayerController>(MyOwner->GetController());
+		if (PC)
+		{
+			PC->ClientPlayCameraShake(FireCamShake);
+		}
+	}
 }
 

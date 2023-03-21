@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HSCharacter.h"
+#include "HSWeapon.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -25,6 +26,8 @@ AHSCharacter::AHSCharacter()
 
 	ZoomedFOV = 65.0f;
 	ZoomInterpSpeed = 20;
+
+	WeaponAttachSocketName = "WeaponSocket";
 }
 
 // Called when the game starts or when spawned
@@ -32,6 +35,16 @@ void AHSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	DefaultFOV = CameraComp->FieldOfView;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	CurrentWeapon = GetWorld()->SpawnActor<AHSWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SetOwner(this);
+		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponAttachSocketName);
+	}
 }
 
 void AHSCharacter::MoveForward(float Value)
@@ -74,6 +87,14 @@ void AHSCharacter::EndZoom()
 	bIsZoomed = false;
 }
 
+void AHSCharacter::Shoot()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->Shoot();
+	}
+}
+
 // Called every frame
 void AHSCharacter::Tick(float DeltaTime)
 {
@@ -109,6 +130,7 @@ void AHSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &AHSCharacter::BeginZoom);
 	PlayerInputComponent->BindAction("Zoom", IE_Released, this, &AHSCharacter::EndZoom);
 
+	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &AHSCharacter::Shoot);
 }
 
 FVector AHSCharacter::GetPawnViewLocation() const

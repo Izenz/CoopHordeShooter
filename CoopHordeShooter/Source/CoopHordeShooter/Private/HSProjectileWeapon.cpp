@@ -21,4 +21,6 @@ void AHSProjectileWeapon::Shoot()
 
 		GetWorld()->SpawnActor<AActor>(ProjectileClass, MuzzleLocation, EyeRotation, SpawnParams);
 	}
+
+	//PlayShootVFX();
 }
