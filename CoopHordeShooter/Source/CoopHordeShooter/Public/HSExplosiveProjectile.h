@@ -25,6 +25,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	float ExplosionRadius;
+
 	float ExplosionDamage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")

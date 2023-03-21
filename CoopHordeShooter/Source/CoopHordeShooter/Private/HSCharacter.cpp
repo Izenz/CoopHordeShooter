@@ -8,7 +8,7 @@
 // Sets default values
 AHSCharacter::AHSCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
@@ -22,13 +22,16 @@ AHSCharacter::AHSCharacter()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
+
+	ZoomedFOV = 65.0f;
+	ZoomInterpSpeed = 20;
 }
 
 // Called when the game starts or when spawned
 void AHSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	DefaultFOV = CameraComp->FieldOfView;
 }
 
 void AHSCharacter::MoveForward(float Value)
@@ -61,10 +64,24 @@ void AHSCharacter::EndJump()
 	StopJumping();
 }
 
+void AHSCharacter::BeginZoom()
+{
+	bIsZoomed = true;
+}
+
+void AHSCharacter::EndZoom()
+{
+	bIsZoomed = false;
+}
+
 // Called every frame
 void AHSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	float TargetFOV = bIsZoomed ? ZoomedFOV : DefaultFOV;
+	float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, ZoomInterpSpeed);
+	CameraComp->SetFieldOfView(NewFOV);
 
 	if (bWasJumping)
 	{
@@ -79,7 +96,7 @@ void AHSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AHSCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AHSCharacter::MoveRight);
-	
+
 	PlayerInputComponent->BindAxis("LookUp", this, &AHSCharacter::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("Turn", this, &AHSCharacter::AddControllerYawInput);
 
@@ -88,6 +105,9 @@ void AHSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AHSCharacter::BeginJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AHSCharacter::EndJump);
+
+	PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &AHSCharacter::BeginZoom);
+	PlayerInputComponent->BindAction("Zoom", IE_Released, this, &AHSCharacter::EndZoom);
 
 }
 
