@@ -87,11 +87,19 @@ void AHSCharacter::EndZoom()
 	bIsZoomed = false;
 }
 
-void AHSCharacter::Shoot()
+void AHSCharacter::StartShooting()
 {
 	if (CurrentWeapon)
 	{
-		CurrentWeapon->Shoot();
+		CurrentWeapon->StartShooting();
+	}
+}
+
+void AHSCharacter::StopShooting()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StopShooting();
 	}
 }
 
@@ -130,7 +138,9 @@ void AHSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &AHSCharacter::BeginZoom);
 	PlayerInputComponent->BindAction("Zoom", IE_Released, this, &AHSCharacter::EndZoom);
 
-	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &AHSCharacter::Shoot);
+	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &AHSCharacter::StartShooting);
+	PlayerInputComponent->BindAction("Shoot", IE_Released, this, &AHSCharacter::StopShooting);
+
 }
 
 FVector AHSCharacter::GetPawnViewLocation() const

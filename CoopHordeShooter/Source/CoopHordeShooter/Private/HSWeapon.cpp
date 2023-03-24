@@ -8,6 +8,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "TimerManager.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -15,6 +16,15 @@ FAutoConsoleVariableRef CVARDebugWeaponDrawing(
 	DebugWeaponDrawing,
 	TEXT("Draws Debug Lines for Weapons"),
 	ECVF_Cheat);
+
+void AHSWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ShootCooldown = 60 / Cadency;
+}
+
+
 
 // Sets default values
 AHSWeapon::AHSWeapon()
@@ -53,12 +63,13 @@ void AHSWeapon::Shoot()
 			// Blocking hit, process damage.
 
 			AActor* HitActor = Hit.GetActor();
-
-			UGameplayStatics::ApplyPointDamage(HitActor, 20.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
-
 			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
-			UParticleSystem* TargetVFX = nullptr;
 
+			float HitDamage = SurfaceType == SURFACE_FLESHVULNERABLE ? BaseDamage * HeadshotMultiplier : BaseDamage;
+
+			UGameplayStatics::ApplyPointDamage(HitActor, HitDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
+			
+			UParticleSystem* TargetVFX = nullptr;
 			switch (SurfaceType)
 			{
 			case SURFACE_FLESHDEFAULT:
@@ -81,9 +92,22 @@ void AHSWeapon::Shoot()
 		if(DebugWeaponDrawing > 0)		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
 
 		PlayShootVFX(BulletTrailEndPoint);
+
+		LastShotTime = GetWorld()->TimeSeconds;
 	}
 
 
+}
+
+void AHSWeapon::StartShooting()
+{
+	float FirstDelay = FMath::Max(LastShotTime + ShootCooldown - GetWorld()->TimeSeconds, 0.0f);
+	GetWorldTimerManager().SetTimer(TimerHandle_TimeBetweenShots, this, &AHSWeapon::Shoot, ShootCooldown, true, FirstDelay);
+}
+
+void AHSWeapon::StopShooting()
+{
+	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
 }
 
 void AHSWeapon::PlayShootVFX(FVector BulletTrailEndPoint)

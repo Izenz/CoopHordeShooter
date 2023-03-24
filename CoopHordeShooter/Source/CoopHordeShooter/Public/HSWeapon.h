@@ -22,10 +22,21 @@ public:
 
 protected:
 	
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* MeshComp;
 
 	float BulletRange = 10000;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float BaseDamage = 20;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float HeadshotMultiplier = 1.5;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float Cadency = 600;	// RPM
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<UDamageType> DamageType;
@@ -53,8 +64,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<UCameraShake> FireCamShake;
 
-public:	
-
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void Shoot();
+
+	FTimerHandle TimerHandle_TimeBetweenShots;
+
+	float LastShotTime;
+
+	float ShootCooldown;
+
+public:	
+
+	void StartShooting();
+
+	void StopShooting();
 };

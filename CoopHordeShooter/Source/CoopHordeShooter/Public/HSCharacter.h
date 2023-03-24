@@ -60,7 +60,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<AHSWeapon> StarterWeaponClass;
 
-	void Shoot();
+	void StartShooting();
+
+	void StopShooting();
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	FName WeaponAttachSocketName;
