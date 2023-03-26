@@ -2,9 +2,12 @@
 
 #include "HSCharacter.h"
 #include "HSWeapon.h"
+#include "Components/HSHealthComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "CoopHordeShooter.h"
 
 // Sets default values
 AHSCharacter::AHSCharacter()
@@ -18,11 +21,15 @@ AHSCharacter::AHSCharacter()
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
+
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
 	JumpMaxHoldTime = 0.2f;
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
+
+	HealthComp = CreateDefaultSubobject<UHSHealthComponent>(TEXT("HealthComp"));
 
 	ZoomedFOV = 65.0f;
 	ZoomInterpSpeed = 20;
@@ -45,6 +52,10 @@ void AHSCharacter::BeginPlay()
 		CurrentWeapon->SetOwner(this);
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponAttachSocketName);
 	}
+
+	HealthComp->OnHealthChanged.AddDynamic(this, &AHSCharacter::OnHealthChanged);
+
+	bIsDead = false;
 }
 
 void AHSCharacter::MoveForward(float Value)
@@ -100,6 +111,20 @@ void AHSCharacter::StopShooting()
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopShooting();
+	}
+}
+
+void AHSCharacter::OnHealthChanged(UHSHealthComponent* HealthComponent, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (Health <= 0.0f && !bIsDead)
+	{
+		bIsDead = true;
+
+		GetMovementComponent()->StopMovementImmediately();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		
+		DetachFromControllerPendingDestroy();
+		SetLifeSpan(5.0f);
 	}
 }
 
