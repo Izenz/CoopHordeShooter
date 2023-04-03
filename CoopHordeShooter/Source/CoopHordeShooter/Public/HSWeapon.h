@@ -11,61 +11,80 @@ class UDamageType;
 class UParticleSystem;
 class UCameraShake;
 
+USTRUCT()
+struct FHitScanTrace
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY()
+	TEnumAsByte<EPhysicalSurface> SurfaceType;
+
+	UPROPERTY()
+	FVector_NetQuantize TraceTo;
+};
+
 UCLASS()
 class COOPHORDESHOOTER_API AHSWeapon : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AHSWeapon();
 
 protected:
-	
+
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USkeletalMeshComponent* MeshComp;
+		USkeletalMeshComponent* MeshComp;
 
 	float BulletRange = 10000;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	float BaseDamage = 20;
+		float BaseDamage = 20;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	float HeadshotMultiplier = 1.5;
+		float HeadshotMultiplier = 1.5;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	float Cadency = 600;	// RPM
+		float Cadency = 600;	// RPM
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	TSubclassOf<UDamageType> DamageType;
+		TSubclassOf<UDamageType> DamageType;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	FName MuzzleSocketName;
-	
+		FName MuzzleSocketName;
+
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	FName TracerTargetName;
+		FName TracerTargetName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	UParticleSystem* MuzzleVFX;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	UParticleSystem* DefaultImpactVFX;
+		UParticleSystem* MuzzleVFX;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	UParticleSystem* FleshImpactVFX;
+		UParticleSystem* DefaultImpactVFX;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	UParticleSystem* BulletTrailVFX;
+		UParticleSystem* FleshImpactVFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		UParticleSystem* BulletTrailVFX;
 
 	void PlayShootVFX(FVector BulletTrailEndPoint);
 
+	void PlayImpactVFX(EPhysicalSurface SurfaceType, FVector ImpactPoint);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	TSubclassOf<UCameraShake> FireCamShake;
+		TSubclassOf<UCameraShake> FireCamShake;
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	virtual void Shoot();
+		virtual void Shoot();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerShoot();
 
 	FTimerHandle TimerHandle_TimeBetweenShots;
 
@@ -73,7 +92,13 @@ protected:
 
 	float ShootCooldown;
 
-public:	
+	UPROPERTY(ReplicatedUsing=OnRep_HitScanTrace)
+	FHitScanTrace HitScanTrace;
+
+	UFUNCTION()
+	void OnRep_HitScanTrace();
+
+public:
 
 	void StartShooting();
 

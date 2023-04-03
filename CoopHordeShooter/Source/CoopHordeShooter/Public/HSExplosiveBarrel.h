@@ -31,7 +31,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	URadialForceComponent* RadialForceComp;
 
+	UPROPERTY(ReplicatedUsing=OnRep_Exploded)
 	bool bHasExploded;
+
+	UFUNCTION()
+	void OnRep_Exploded();
 
 	UPROPERTY(EditDefaultsOnly, Category = "FX")
 	float ExplosionForce;

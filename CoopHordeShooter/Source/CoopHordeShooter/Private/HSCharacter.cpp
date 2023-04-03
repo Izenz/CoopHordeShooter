@@ -8,6 +8,7 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "CoopHordeShooter.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AHSCharacter::AHSCharacter()
@@ -35,27 +36,29 @@ AHSCharacter::AHSCharacter()
 	ZoomInterpSpeed = 20;
 
 	WeaponAttachSocketName = "WeaponSocket";
+	bIsDead = false;
 }
 
 // Called when the game starts or when spawned
 void AHSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
 	DefaultFOV = CameraComp->FieldOfView;
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	CurrentWeapon = GetWorld()->SpawnActor<AHSWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-	if (CurrentWeapon)
-	{
-		CurrentWeapon->SetOwner(this);
-		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponAttachSocketName);
-	}
-
 	HealthComp->OnHealthChanged.AddDynamic(this, &AHSCharacter::OnHealthChanged);
 
-	bIsDead = false;
+	if (Role == ROLE_Authority)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		CurrentWeapon = GetWorld()->SpawnActor<AHSWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->SetOwner(this);
+			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponAttachSocketName);
+		}
+	}	
 }
 
 void AHSCharacter::MoveForward(float Value)
@@ -178,3 +181,10 @@ FVector AHSCharacter::GetPawnViewLocation() const
 	return Super::GetPawnViewLocation();
 }
 
+void AHSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const 
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AHSCharacter, CurrentWeapon);
+	DOREPLIFETIME(AHSCharacter, bIsDead);
+}

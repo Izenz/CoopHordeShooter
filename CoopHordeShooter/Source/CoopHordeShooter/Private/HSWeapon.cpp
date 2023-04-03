@@ -9,6 +9,7 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "TimerManager.h"
+#include "Net/UnrealNetwork.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -34,10 +35,17 @@ AHSWeapon::AHSWeapon()
 
 	MuzzleSocketName = "MuzzleSocket";
 	TracerTargetName = "Target";
+
+	SetReplicates(true);
 }
 
 void AHSWeapon::Shoot()
 {
+	if (!HasAuthority())
+	{
+		ServerShoot();
+	}
+
 	AActor* MyOwner = GetOwner();
 	if (MyOwner)
 	{
@@ -57,34 +65,21 @@ void AHSWeapon::Shoot()
 
 		FVector BulletTrailEndPoint = TraceEnd;
 
+		EPhysicalSurface SurfaceType = SurfaceType_Default;
+
 		FHitResult Hit;
 		if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams))
 		{
 			// Blocking hit, process damage.
 
 			AActor* HitActor = Hit.GetActor();
-			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 
 			float HitDamage = SurfaceType == SURFACE_FLESHVULNERABLE ? BaseDamage * HeadshotMultiplier : BaseDamage;
 
 			UGameplayStatics::ApplyPointDamage(HitActor, HitDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
 			
-			UParticleSystem* TargetVFX = nullptr;
-			switch (SurfaceType)
-			{
-			case SURFACE_FLESHDEFAULT:
-			case SURFACE_FLESHVULNERABLE:
-				TargetVFX = FleshImpactVFX;
-				break;
-			default:
-				TargetVFX = DefaultImpactVFX;
-				break;
-			}
-
-			if (TargetVFX)
-			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TargetVFX, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
-			}
+			PlayImpactVFX(SurfaceType, Hit.ImpactPoint);
 
 			BulletTrailEndPoint = Hit.ImpactPoint;
 		}
@@ -93,10 +88,32 @@ void AHSWeapon::Shoot()
 
 		PlayShootVFX(BulletTrailEndPoint);
 
+		if (HasAuthority())
+		{
+			HitScanTrace.TraceTo = BulletTrailEndPoint;
+			HitScanTrace.SurfaceType = SurfaceType;
+		}
+
 		LastShotTime = GetWorld()->TimeSeconds;
 	}
 
 
+}
+
+void AHSWeapon::ServerShoot_Implementation()
+{
+	Shoot();
+}
+
+bool AHSWeapon::ServerShoot_Validate()
+{
+	return true;
+}
+
+void AHSWeapon::OnRep_HitScanTrace()
+{
+	PlayShootVFX(HitScanTrace.TraceTo);
+	PlayImpactVFX(HitScanTrace.SurfaceType, HitScanTrace.TraceTo);
 }
 
 void AHSWeapon::StartShooting()
@@ -137,5 +154,36 @@ void AHSWeapon::PlayShootVFX(FVector BulletTrailEndPoint)
 			PC->ClientPlayCameraShake(FireCamShake);
 		}
 	}
+}
+
+void AHSWeapon::PlayImpactVFX(EPhysicalSurface SurfaceType, FVector ImpactPoint)
+{
+	UParticleSystem* TargetVFX = nullptr;
+	switch (SurfaceType)
+	{
+	case SURFACE_FLESHDEFAULT:
+	case SURFACE_FLESHVULNERABLE:
+		TargetVFX = FleshImpactVFX;
+		break;
+	default:
+		TargetVFX = DefaultImpactVFX;
+		break;
+	}
+
+	if (TargetVFX)
+	{
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+		FVector ShotDirection = ImpactPoint - MuzzleLocation;
+		ShotDirection.Normalize();
+
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TargetVFX, ImpactPoint, ShotDirection.Rotation());
+	}
+}
+
+void AHSWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AHSWeapon, HitScanTrace, COND_SkipOwner);
 }
 
