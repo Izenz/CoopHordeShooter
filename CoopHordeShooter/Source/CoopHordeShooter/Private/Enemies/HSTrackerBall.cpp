@@ -48,7 +48,10 @@ void AHSTrackerBall::BeginPlay()
 {
 	Super::BeginPlay();
 
-	NextPathPoint = GetNextPathPoint();
+	if (HasAuthority())
+	{
+		NextPathPoint = GetNextPathPoint();
+	}
 }
 
 void AHSTrackerBall::HandleTakeAnyDamage(UHSHealthComponent* HealthComponent, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
@@ -95,16 +98,22 @@ void AHSTrackerBall::SelfDestruct()
 
 	bHasExploded = true;
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionVFX, GetActorLocation());
-
-	TArray<AActor*> IgnoredActors;
-	IgnoredActors.Add(this);
-
-	UGameplayStatics::ApplyRadialDamage(this, ExplosionDamage, GetActorLocation(), ExplosionRadius, nullptr, IgnoredActors, this, GetInstigatorController(), true);
-	DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 12, FColor::Yellow, false, 3.0f, 0, 1.0f);
-
 	UGameplayStatics::PlaySoundAtLocation(this, ExplosionSFX, GetActorLocation());
 
-	Destroy();
+	MeshComp->SetVisibility(false, true);
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if (HasAuthority())
+	{
+		TArray<AActor*> IgnoredActors;
+		IgnoredActors.Add(this);
+
+		UGameplayStatics::ApplyRadialDamage(this, ExplosionDamage, GetActorLocation(), ExplosionRadius, nullptr, IgnoredActors, this, GetInstigatorController(), true);
+		DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 12, FColor::Yellow, false, 3.0f, 0, 1.0f);
+
+	}
+	
+	SetLifeSpan(2.0f);
 }
 
 void AHSTrackerBall::DamageSelf()
@@ -117,25 +126,28 @@ void AHSTrackerBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	float DistanceToTarget = (GetActorLocation() - NextPathPoint).Size();
-
-	if (DistanceToTarget <= RequiredDistanceToTarget)
+	if (HasAuthority() && !bHasExploded)
 	{
-		NextPathPoint = GetNextPathPoint();
+		float DistanceToTarget = (GetActorLocation() - NextPathPoint).Size();
+
+		if (DistanceToTarget <= RequiredDistanceToTarget)
+		{
+			NextPathPoint = GetNextPathPoint();
+		}
+		else
+		{
+			FVector MovementDirection = NextPathPoint - GetActorLocation();
+			MovementDirection.Normalize();
+
+			MovementDirection *= MovementSpeed;
+
+			MeshComp->AddForce(MovementDirection, NAME_None, bUseVelocityChange);
+
+			DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + MovementDirection, 32, FColor::Red, false, 0.0f, 0, 1.0f);
+		}
+
+		DrawDebugSphere(GetWorld(), NextPathPoint, 20, 12, FColor::Red, false, 4.0f, 1.0f);
 	}
-	else
-	{
-		FVector MovementDirection = NextPathPoint - GetActorLocation();
-		MovementDirection.Normalize();
-
-		MovementDirection *= MovementSpeed;
-
-		MeshComp->AddForce(MovementDirection, NAME_None, bUseVelocityChange);
-
-		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + MovementDirection, 32, FColor::Red, false, 0.0f, 0, 1.0f);
-	}
-
-	DrawDebugSphere(GetWorld(), NextPathPoint, 20, 12, FColor::Red, false, 4.0f, 1.0f);
 }
 
 void AHSTrackerBall::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -146,7 +158,10 @@ void AHSTrackerBall::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (PlayerPawn)
 	{
-		GetWorldTimerManager().SetTimer(TimerHandle_SelfDamage, this, &AHSTrackerBall::DamageSelf, SelfDamageInterval, true, 0.0f);
+		if (HasAuthority())
+		{
+			GetWorldTimerManager().SetTimer(TimerHandle_SelfDamage, this, &AHSTrackerBall::DamageSelf, SelfDamageInterval, true, 0.0f);
+		}
 		bStartedSelfDestruction = true;
 
 		UGameplayStatics::SpawnSoundAttached(SelfDestructSFX, RootComponent);
