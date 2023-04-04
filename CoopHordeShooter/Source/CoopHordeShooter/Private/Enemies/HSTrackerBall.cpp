@@ -39,8 +39,9 @@ AHSTrackerBall::AHSTrackerBall()
 	MovementSpeed = 1000.0f;
 	RequiredDistanceToTarget = 100.0f;
 	ExplosionRadius = 200.0f;
-	ExplosionDamage = 50.0f;
+	ExplosionDamage = 25.0f;
 	SelfDamageInterval = 0.3f;
+	ChargeLevel = 0;
 }
 
 // Called when the game starts or when spawned
@@ -51,6 +52,9 @@ void AHSTrackerBall::BeginPlay()
 	if (HasAuthority())
 	{
 		NextPathPoint = GetNextPathPoint();
+
+		FTimerHandle TimerHandle_CheckPowerLevel;
+		GetWorldTimerManager().SetTimer(TimerHandle_CheckPowerLevel, this, &AHSTrackerBall::OnCheckNearbyBalls, 0.5f, true);
 	}
 }
 
@@ -108,17 +112,66 @@ void AHSTrackerBall::SelfDestruct()
 		TArray<AActor*> IgnoredActors;
 		IgnoredActors.Add(this);
 
-		UGameplayStatics::ApplyRadialDamage(this, ExplosionDamage, GetActorLocation(), ExplosionRadius, nullptr, IgnoredActors, this, GetInstigatorController(), true);
+		float FinalDamage = ExplosionDamage + ChargeLevel * ExplosionDamage;
+
+		UGameplayStatics::ApplyRadialDamage(this, FinalDamage, GetActorLocation(), ExplosionRadius, nullptr, IgnoredActors, this, GetInstigatorController(), true);
 		DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 12, FColor::Yellow, false, 3.0f, 0, 1.0f);
 
 	}
-	
+
 	SetLifeSpan(2.0f);
 }
 
 void AHSTrackerBall::DamageSelf()
 {
 	UGameplayStatics::ApplyDamage(this, 20, GetInstigatorController(), this, nullptr);
+}
+
+void AHSTrackerBall::OnCheckNearbyBalls()
+{
+	const float Radius = 600;
+
+	FCollisionShape CollShape;
+	CollShape.SetSphere(Radius);
+
+
+	FCollisionObjectQueryParams QueryParams;
+	QueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
+	QueryParams.AddObjectTypesToQuery(ECC_Pawn);
+
+	TArray<FOverlapResult> Overlaps;
+	GetWorld()->OverlapMultiByObjectType(Overlaps, GetActorLocation(), FQuat::Identity, QueryParams, CollShape);
+
+	int NumOfNearbyBalls = 0;
+	for (FOverlapResult Result : Overlaps)
+	{
+		// Check if we overlapped with another tracker bot (ignoring players and other bot types)
+		AHSTrackerBall* Ball = Cast<AHSTrackerBall>(Result.GetActor());
+		// Ignore this trackerbot instance
+		if (Ball && Ball != this)
+		{
+			NumOfNearbyBalls++;
+		}
+	}
+
+	const int32 MaxChargeLevel = 4;
+
+	ChargeLevel = FMath::Clamp(NumOfNearbyBalls, 0, MaxChargeLevel);
+
+	// Update the material color
+	if (MatInst == nullptr)
+	{
+		MatInst = MeshComp->CreateAndSetMaterialInstanceDynamicFromMaterial(0, MeshComp->GetMaterial(0));
+	}
+	if (MatInst)
+	{
+		float Alpha = ChargeLevel / (float)MaxChargeLevel;
+		MatInst->SetScalarParameterValue("PowerLevelAlpha", Alpha);
+	}
+
+	DrawDebugSphere(GetWorld(), GetActorLocation(), Radius, 12, FColor::White, false, 1.0f);
+	DrawDebugString(GetWorld(), FVector(0, 0, 0), FString::FromInt(ChargeLevel), this, FColor::White, 1.0f, true);
+
 }
 
 // Called every frame

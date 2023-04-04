@@ -80,6 +80,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundCue* ExplosionSFX;
 
+	int32 ChargeLevel;
+
+	void OnCheckNearbyBalls();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
