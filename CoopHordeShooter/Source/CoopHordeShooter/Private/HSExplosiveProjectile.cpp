@@ -50,15 +50,14 @@ void AHSExplosiveProjectile::ExplodeProjectile()
 {
 	DrawDebugSphere(GetWorld(), this->GetActorLocation(), ExplosionRadius, 12, FColor::Yellow, false, 3.0f);
 	
-	/*
 	AActor* Owner = GetOwner();
 	TArray<AActor*> IgnoredActors;
 	if (Owner)
 	{
 		IgnoredActors.Add(Owner);
-		UGameplayStatics::ApplyRadialDamage(Owner, ExplosionDamage, GetActorLocation(), ExplosionRadius, DamageType, IgnoredActors, this, Owner->GetInstigatorController(), true, ECC_Visibility);
+		UGameplayStatics::ApplyRadialDamage(this, ExplosionDamage, GetActorLocation(), ExplosionRadius, DamageType, IgnoredActors, this, GetInstigatorController(), true);
 	}
-	*/
+	
 
 	if (ExplosionVFX)
 	{
