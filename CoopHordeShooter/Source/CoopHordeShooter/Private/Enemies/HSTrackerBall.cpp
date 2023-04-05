@@ -205,7 +205,9 @@ void AHSTrackerBall::Tick(float DeltaTime)
 
 void AHSTrackerBall::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	if (bStartedSelfDestruction) return;
+	Super::NotifyActorBeginOverlap(OtherActor);
+
+	if (bStartedSelfDestruction || bHasExploded) return;
 
 	AHSCharacter* PlayerPawn = Cast<AHSCharacter>(OtherActor);
 
