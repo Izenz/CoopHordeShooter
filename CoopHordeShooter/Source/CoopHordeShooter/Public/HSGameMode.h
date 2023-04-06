@@ -14,7 +14,44 @@ class COOPHORDESHOOTER_API AHSGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+protected:
+
+	FTimerHandle TimerHandle_BotSpawner;
+
+	FTimerHandle TimerHandle_NextWaveStart;
+
+	int32 NumOfEnemiesPerWave;
+
+	int32 WaveCount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameMode")
+	float TimeBetweenWaves;
+
+protected:
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "GameMode")
+	void SpawnNewEnemy();
 	
+	void SpawnEnemyTimerElapsed();
+
+	void StartWave();
+
+	void EndWave();
+
+	void PrepareForNextWave();
+
+	void CheckWaveState();
+
+	void CheckForAlivePlayers();
+
+	void GameOver();
 	
-	
+public:
+
+	AHSGameMode();
+
+	virtual void StartPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
+
 };
