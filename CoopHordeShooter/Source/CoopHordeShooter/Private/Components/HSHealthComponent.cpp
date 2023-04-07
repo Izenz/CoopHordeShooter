@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HSHealthComponent.h"
+#include "HSGameMode.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -8,6 +9,7 @@
 UHSHealthComponent::UHSHealthComponent()
 {
 	MaxHealth = 100;
+	bIsDead = false;
 	SetIsReplicated(true);
 }
 
@@ -39,12 +41,23 @@ void UHSHealthComponent::OnRep_Health(float OldHealth)
 
 void UHSHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
 {
-	if (Damage < 0.0f)	return;
+	if (Damage <= 0.0f || bIsDead)	return;
 
 	Health = FMath::Clamp(Health - Damage, 0.0f, MaxHealth);
 	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *FString::SanitizeFloat(Health));
 
+	bIsDead = Health <= 0.0f;
+
 	OnHealthChanged.Broadcast(this, Health, Damage, DamageType, InstigatedBy, DamageCauser);
+
+	if (bIsDead)
+	{
+		AHSGameMode* GM = Cast<AHSGameMode>(GetWorld()->GetAuthGameMode());
+		if (GM)
+		{
+			GM->OnActorKilled.Broadcast(GetOwner(), DamageCauser, InstigatedBy);
+		}
+	}
 }
 
 float UHSHealthComponent::GetHealth() const

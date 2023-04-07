@@ -2,6 +2,7 @@
 
 #include "HSGameMode.h"
 #include "HSGameState.h"
+#include "HSPlayerState.h"
 #include "Components/HSHealthComponent.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
@@ -13,6 +14,7 @@ AHSGameMode::AHSGameMode()
 	TimeBetweenWaves = 2.0f;
 
 	GameStateClass = AHSGameState::StaticClass();
+	PlayerStateClass = AHSPlayerState::StaticClass();
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickInterval = 1.0f;
