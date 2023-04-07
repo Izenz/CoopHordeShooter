@@ -51,6 +51,8 @@ void AHSGameMode::EndWave()
 
 void AHSGameMode::PrepareForNextWave()
 {
+	RestartDeadPlayers();
+
 	GetWorldTimerManager().SetTimer(TimerHandle_NextWaveStart, this, &AHSGameMode::StartWave, TimeBetweenWaves, false);
 
 	SetWaveState(EWaveState::PreparingWave);
@@ -121,6 +123,18 @@ void AHSGameMode::SetWaveState(EWaveState NewState)
 	if (ensureAlways(GS))
 	{
 		GS->SetWaveState(NewState);
+	}
+}
+
+void AHSGameMode::RestartDeadPlayers()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	{
+		APlayerController* PC = It->Get();
+		if (PC && PC->GetPawn() == nullptr)
+		{
+			RestartPlayer(PC);
+		}
 	}
 }
 
