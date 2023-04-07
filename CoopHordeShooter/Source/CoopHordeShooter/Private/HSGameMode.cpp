@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HSGameMode.h"
+#include "HSGameState.h"
 #include "Components/HSHealthComponent.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
@@ -10,6 +11,8 @@ AHSGameMode::AHSGameMode()
 {
 	WaveCount = 0;
 	TimeBetweenWaves = 2.0f;
+
+	GameStateClass = AHSGameState::StaticClass();
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickInterval = 1.0f;
@@ -21,6 +24,8 @@ void AHSGameMode::StartWave()
 	NumOfEnemiesPerWave = 2 * WaveCount;
 
 	GetWorldTimerManager().SetTimer(TimerHandle_BotSpawner, this, &AHSGameMode::SpawnEnemyTimerElapsed, 1.0f, true, 0.0f);
+
+	SetWaveState(EWaveState::WaveInProgress);
 }
 
 void AHSGameMode::SpawnEnemyTimerElapsed()
@@ -38,11 +43,15 @@ void AHSGameMode::SpawnEnemyTimerElapsed()
 void AHSGameMode::EndWave()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_BotSpawner);
+
+	SetWaveState(EWaveState::WaitingToComplete);
 }
 
 void AHSGameMode::PrepareForNextWave()
 {
 	GetWorldTimerManager().SetTimer(TimerHandle_NextWaveStart, this, &AHSGameMode::StartWave, TimeBetweenWaves, false);
+
+	SetWaveState(EWaveState::PreparingWave);
 }
 
 void AHSGameMode::CheckWaveState()
@@ -71,6 +80,7 @@ void AHSGameMode::CheckWaveState()
 
 	if (!bIsAnyEnemyAlive)
 	{
+		SetWaveState(EWaveState::WaveComplete);
 		PrepareForNextWave();
 	}
 }
@@ -98,8 +108,18 @@ void AHSGameMode::GameOver()
 {
 	EndWave();
 
-	// Finish match.
+	SetWaveState(EWaveState::GameOver);
+
 	UE_LOG(LogTemp, Log, TEXT("Game over! No alive players remaining."));
+}
+
+void AHSGameMode::SetWaveState(EWaveState NewState)
+{
+	AHSGameState* GS = GetGameState<AHSGameState>();
+	if (ensureAlways(GS))
+	{
+		GS->SetWaveState(NewState);
+	}
 }
 
 void AHSGameMode::StartPlay()
