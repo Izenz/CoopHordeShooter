@@ -86,7 +86,7 @@ void AHSWeapon::Shoot()
 
 			float HitDamage = SurfaceType == SURFACE_FLESHVULNERABLE ? BaseDamage * HeadshotMultiplier : BaseDamage;
 
-			UGameplayStatics::ApplyPointDamage(HitActor, HitDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
+			UGameplayStatics::ApplyPointDamage(HitActor, HitDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), MyOwner, DamageType);
 			
 			PlayImpactVFX(SurfaceType, Hit.ImpactPoint);
 

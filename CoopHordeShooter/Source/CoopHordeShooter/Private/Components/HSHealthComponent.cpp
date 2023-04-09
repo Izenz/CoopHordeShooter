@@ -11,6 +11,8 @@ UHSHealthComponent::UHSHealthComponent()
 	MaxHealth = 100;
 	bIsDead = false;
 	SetIsReplicated(true);
+
+	TeamId = 255;
 }
 
 
@@ -43,6 +45,11 @@ void UHSHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage,
 {
 	if (Damage <= 0.0f || bIsDead)	return;
 
+	if (DamageCauser != DamagedActor && IsFriendly(DamagedActor, DamageCauser))
+	{
+		return;
+	}
+
 	Health = FMath::Clamp(Health - Damage, 0.0f, MaxHealth);
 	UE_LOG(LogTemp, Log, TEXT("Health Changed: %s"), *FString::SanitizeFloat(Health));
 
@@ -63,6 +70,24 @@ void UHSHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage,
 float UHSHealthComponent::GetHealth() const
 {
 	return Health;
+}
+
+bool UHSHealthComponent::IsFriendly(AActor* ActorA, AActor* ActorB)
+{
+	if (ActorA == nullptr || ActorB == nullptr)
+	{
+		return true;
+	}
+
+	UHSHealthComponent* HealthCompA = Cast<UHSHealthComponent>(ActorA->GetComponentByClass(UHSHealthComponent::StaticClass()));
+	UHSHealthComponent* HealthCompB = Cast<UHSHealthComponent>(ActorB->GetComponentByClass(UHSHealthComponent::StaticClass()));
+
+	if (HealthCompA == nullptr || HealthCompB == nullptr)
+	{
+		return true;
+	}
+
+	return HealthCompA->TeamId == HealthCompB->TeamId;
 }
 
 void UHSHealthComponent::Heal(float HealAmount)
