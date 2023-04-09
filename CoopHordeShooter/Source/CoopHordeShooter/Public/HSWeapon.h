@@ -19,10 +19,10 @@ struct FHitScanTrace
 public:
 
 	UPROPERTY()
-	TEnumAsByte<EPhysicalSurface> SurfaceType;
+		TEnumAsByte<EPhysicalSurface> SurfaceType;
 
 	UPROPERTY()
-	FVector_NetQuantize TraceTo;
+		FVector_NetQuantize TraceTo;
 };
 
 UCLASS()
@@ -41,16 +41,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		USkeletalMeshComponent* MeshComp;
 
-	float BulletRange = 10000;
+	float BulletRange;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-		float BaseDamage = 20;
+		float BaseDamage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-		float HeadshotMultiplier = 1.5;
+		float HeadshotMultiplier;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-		float Cadency = 600;	// RPM
+		float Cadency;	// RPM
+
+	// Bullet spread in DEGREES
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin=0.0f))
+		float BulletSpread;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 		TSubclassOf<UDamageType> DamageType;
@@ -92,11 +96,11 @@ protected:
 
 	float ShootCooldown;
 
-	UPROPERTY(ReplicatedUsing=OnRep_HitScanTrace)
-	FHitScanTrace HitScanTrace;
+	UPROPERTY(ReplicatedUsing = OnRep_HitScanTrace)
+		FHitScanTrace HitScanTrace;
 
 	UFUNCTION()
-	void OnRep_HitScanTrace();
+		void OnRep_HitScanTrace();
 
 public:
 

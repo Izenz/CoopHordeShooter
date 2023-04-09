@@ -21,7 +21,12 @@ FAutoConsoleVariableRef CVARDebugWeaponDrawing(
 void AHSWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	BulletRange = 10000;
+	BulletSpread = 2.0f;
+	BaseDamage = 20;
+	HeadshotMultiplier = 1.5;
+	Cadency = 600;
 	ShootCooldown = 60 / Cadency;
 }
 
@@ -54,6 +59,10 @@ void AHSWeapon::Shoot()
 		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
 		FVector ShotDirection = EyeRotation.Vector();
+		
+		// Add spread
+		float HalfRad = FMath::DegreesToRadians(BulletSpread);
+		ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
 
 		FVector TraceEnd = EyeLocation + (ShotDirection * BulletRange);
 
