@@ -65,10 +65,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<AHSWeapon> StarterWeaponClass;
 
-	void StartShooting();
-
-	void StopShooting();
-
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	FName WeaponAttachSocketName;
 
@@ -87,4 +83,9 @@ public:
 
 	virtual FVector GetPawnViewLocation() const override;
 	
+	UFUNCTION(BlueprintCallable, Category = "Player")
+	void StartShooting();
+
+	UFUNCTION(BlueprintCallable, Category = "Player")
+	void StopShooting();
 };
