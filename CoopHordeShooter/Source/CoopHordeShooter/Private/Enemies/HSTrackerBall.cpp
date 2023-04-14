@@ -12,6 +12,13 @@
 #include "DrawDebugHelpers.h"
 #include "Sound/SoundCue.h"
 
+static int32 DebugTrackerBallDrawing = 0;
+FAutoConsoleVariableRef CVARDebugTrackerBallDrawing(
+	TEXT("COOP.DebugTrackerBall"),
+	DebugTrackerBallDrawing,
+	TEXT("Draws Debug Lines for TrackerBalls"),
+	ECVF_Cheat);
+
 // Sets default values
 AHSTrackerBall::AHSTrackerBall()
 {
@@ -38,8 +45,8 @@ AHSTrackerBall::AHSTrackerBall()
 	bStartedSelfDestruction = false;
 	MovementSpeed = 1000.0f;
 	RequiredDistanceToTarget = 100.0f;
-	ExplosionRadius = 200.0f;
-	ExplosionDamage = 25.0f;
+	ExplosionRadius = 350.0f;
+	ExplosionDamage = 30.0f;
 	SelfDamageInterval = 0.3f;
 	ChargeLevel = 0;
 }
@@ -74,21 +81,48 @@ void AHSTrackerBall::HandleTakeAnyDamage(UHSHealthComponent* HealthComponent, fl
 	{
 		SelfDestruct();
 	}
-
-	UE_LOG(LogTemp, Log, TEXT("Health %s of %s"), *FString::SanitizeFloat(Health), *GetName());
 }
 
 FVector AHSTrackerBall::GetNextPathPoint()
 {
-	ACharacter* PlayerPawn = UGameplayStatics::GetPlayerCharacter(this, 0);
-	UNavigationPath* NavPath = UNavigationSystem::FindPathToActorSynchronously(this, GetActorLocation(), PlayerPawn);
+	AActor* BestTarget = nullptr;
+	float NearestTargetDistance = FLT_MAX;
 
-	if (NavPath && NavPath->PathPoints.Num() > 1)
+	for (FConstPawnIterator It = GetWorld()->GetPawnIterator(); It; It++)
 	{
-		// Return next point in path
-		return NavPath->PathPoints[1];
+		APawn* MyPawn = It->Get();
+		if (MyPawn == nullptr || UHSHealthComponent::IsFriendly(MyPawn, this))
+		{
+			continue;
+		}
+
+		UHSHealthComponent* MyPawnHealthComp = Cast<UHSHealthComponent>(MyPawn->GetComponentByClass(UHSHealthComponent::StaticClass()));
+		if (MyPawnHealthComp && MyPawnHealthComp->GetHealth() > 0.0f)
+		{
+			float Distance = (MyPawn->GetActorLocation() - GetActorLocation()).Size();
+			if (Distance < NearestTargetDistance)
+			{
+				BestTarget = MyPawn;
+				NearestTargetDistance = Distance;
+			}
+		}
 	}
 
+	if (BestTarget)
+	{
+		UNavigationPath* NavPath = UNavigationSystem::FindPathToActorSynchronously(this, GetActorLocation(), BestTarget);
+
+		GetWorldTimerManager().ClearTimer(TimerHandle_RefreshPath);
+		GetWorldTimerManager().SetTimer(TimerHandle_RefreshPath, this, &AHSTrackerBall::RefreshPath, 3.0f, false);
+
+		if (NavPath && NavPath->PathPoints.Num() > 1)
+		{
+			// Return next point in path
+			return NavPath->PathPoints[1];
+		}
+	}
+
+	
 	// Failed to find path
 	return GetActorLocation();
 }
@@ -115,8 +149,11 @@ void AHSTrackerBall::SelfDestruct()
 		float FinalDamage = ExplosionDamage + ChargeLevel * ExplosionDamage;
 
 		UGameplayStatics::ApplyRadialDamage(this, FinalDamage, GetActorLocation(), ExplosionRadius, nullptr, IgnoredActors, this, GetInstigatorController(), true);
-		DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 12, FColor::Yellow, false, 3.0f, 0, 1.0f);
 
+		if (DebugTrackerBallDrawing)
+		{
+			DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 12, FColor::Yellow, false, 3.0f, 0, 1.0f);
+		}
 	}
 
 	SetLifeSpan(2.0f);
@@ -169,9 +206,17 @@ void AHSTrackerBall::OnCheckNearbyBalls()
 		MatInst->SetScalarParameterValue("PowerLevelAlpha", Alpha);
 	}
 
-	DrawDebugSphere(GetWorld(), GetActorLocation(), Radius, 12, FColor::White, false, 1.0f);
-	DrawDebugString(GetWorld(), FVector(0, 0, 0), FString::FromInt(ChargeLevel), this, FColor::White, 1.0f, true);
+	if (DebugTrackerBallDrawing)
+	{
+		DrawDebugSphere(GetWorld(), GetActorLocation(), Radius, 12, FColor::White, false, 1.0f);
+		DrawDebugString(GetWorld(), FVector(0, 0, 0), FString::FromInt(ChargeLevel), this, FColor::White, 1.0f, true);
+	}
 
+}
+
+void AHSTrackerBall::RefreshPath()
+{
+	NextPathPoint = GetNextPathPoint();
 }
 
 // Called every frame
@@ -196,10 +241,15 @@ void AHSTrackerBall::Tick(float DeltaTime)
 
 			MeshComp->AddForce(MovementDirection, NAME_None, bUseVelocityChange);
 
-			DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + MovementDirection, 32, FColor::Red, false, 0.0f, 0, 1.0f);
+			if (DebugTrackerBallDrawing)
+			{
+				DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + MovementDirection, 32, FColor::Red, false, 0.0f, 0, 1.0f);
+			}
 		}
-
-		DrawDebugSphere(GetWorld(), NextPathPoint, 20, 12, FColor::Red, false, 4.0f, 1.0f);
+		if (DebugTrackerBallDrawing)
+		{
+			DrawDebugSphere(GetWorld(), NextPathPoint, 20, 12, FColor::Red, false, 4.0f, 1.0f);
+		}
 	}
 }
 
@@ -211,7 +261,7 @@ void AHSTrackerBall::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	AHSCharacter* PlayerPawn = Cast<AHSCharacter>(OtherActor);
 
-	if (PlayerPawn)
+	if (PlayerPawn && !UHSHealthComponent::IsFriendly(OtherActor, this))
 	{
 		if (HasAuthority())
 		{

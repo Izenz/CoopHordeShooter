@@ -84,6 +84,10 @@ protected:
 
 	void OnCheckNearbyBalls();
 
+	FTimerHandle TimerHandle_RefreshPath;
+
+	void RefreshPath();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
