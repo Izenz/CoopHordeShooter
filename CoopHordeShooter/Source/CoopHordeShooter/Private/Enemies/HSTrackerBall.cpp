@@ -139,7 +139,7 @@ void AHSTrackerBall::SelfDestruct()
 	UGameplayStatics::PlaySoundAtLocation(this, ExplosionSFX, GetActorLocation());
 
 	MeshComp->SetVisibility(false, true);
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 
 	if (HasAuthority())
 	{

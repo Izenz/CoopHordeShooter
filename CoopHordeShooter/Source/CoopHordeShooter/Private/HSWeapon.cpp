@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HSWeapon.h"
+#include "HSHealthComponent.h"
 #include "CoopHordeShooter.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
@@ -10,6 +11,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
+#include "Sound/SoundCue.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -23,10 +25,7 @@ void AHSWeapon::BeginPlay()
 	Super::BeginPlay();
 	
 	BulletRange = 10000;
-	BulletSpread = 2.0f;
-	BaseDamage = 20;
 	HeadshotMultiplier = 1.5;
-	Cadency = 600;
 	ShootCooldown = 60 / Cadency;
 }
 
@@ -87,6 +86,11 @@ void AHSWeapon::Shoot()
 			float HitDamage = SurfaceType == SURFACE_FLESHVULNERABLE ? BaseDamage * HeadshotMultiplier : BaseDamage;
 
 			UGameplayStatics::ApplyPointDamage(HitActor, HitDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), MyOwner, DamageType);
+
+			if (!UHSHealthComponent::IsFriendly(MyOwner, HitActor))
+			{
+				UGameplayStatics::PlaySound2D(this, EnemyHitSFX);
+			}
 			
 			PlayImpactVFX(SurfaceType, Hit.ImpactPoint);
 
@@ -96,6 +100,9 @@ void AHSWeapon::Shoot()
 		if(DebugWeaponDrawing > 0)		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
 
 		PlayShootVFX(BulletTrailEndPoint);
+
+		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
+		UGameplayStatics::PlaySoundAtLocation(this, ShootSFX, MuzzleLocation);
 
 		if (HasAuthority())
 		{

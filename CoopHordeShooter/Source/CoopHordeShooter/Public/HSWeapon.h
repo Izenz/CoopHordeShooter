@@ -10,6 +10,7 @@ class USkeletalMeshComponent;
 class UDamageType;
 class UParticleSystem;
 class UCameraShake;
+class USoundCue;
 
 USTRUCT()
 struct FHitScanTrace
@@ -44,17 +45,17 @@ protected:
 	float BulletRange;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-		float BaseDamage;
+		float BaseDamage = 20;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 		float HeadshotMultiplier;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-		float Cadency;	// RPM
+		float Cadency = 600;	// RPM
 
 	// Bullet spread in DEGREES
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin=0.0f))
-		float BulletSpread;
+		float BulletSpread = 2.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 		TSubclassOf<UDamageType> DamageType;
@@ -76,6 +77,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 		UParticleSystem* BulletTrailVFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundCue* ShootSFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundCue* EnemyHitSFX;
 
 	void PlayShootVFX(FVector BulletTrailEndPoint);
 
