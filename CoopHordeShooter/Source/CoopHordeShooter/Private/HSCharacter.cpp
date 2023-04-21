@@ -123,11 +123,14 @@ void AHSCharacter::OnHealthChanged(UHSHealthComponent* HealthComponent, float He
 	{
 		bIsDead = true;
 
+		StopShooting();
+
 		GetMovementComponent()->StopMovementImmediately();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		
 		DetachFromControllerPendingDestroy();
 		SetLifeSpan(5.0f);
+		CurrentWeapon->SetLifeSpan(5.0f);
 	}
 }
 
