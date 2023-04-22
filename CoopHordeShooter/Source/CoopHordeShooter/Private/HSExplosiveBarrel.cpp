@@ -5,6 +5,7 @@
 #include "PhysicsEngine/RadialForceComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AHSExplosiveBarrel::AHSExplosiveBarrel()
@@ -32,7 +33,10 @@ AHSExplosiveBarrel::AHSExplosiveBarrel()
 
 void AHSExplosiveBarrel::OnRep_Exploded()
 {
+	if (ExplosionVFX == nullptr || ExplosionSFX == nullptr)	return;
+
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionVFX, GetActorLocation());
+	UGameplayStatics::PlaySoundAtLocation(this, ExplosionSFX, GetActorLocation());
 	MeshComp->SetMaterial(0, ExplodedMaterial);
 }
 
@@ -51,6 +55,8 @@ void AHSExplosiveBarrel::OnHealthChanged(UHSHealthComponent* HealthComponent, fl
 		// Since other elements might be used for cover, etc meaning that its important to replicate the movement we trigger explosion on the server only
 		// If they were trivial to the gameplay this function should be called client side instead of replicating the movement.
 		RadialForceComp->FireImpulse();
+
+		SetLifeSpan(5.0f);
 	}
 }
 

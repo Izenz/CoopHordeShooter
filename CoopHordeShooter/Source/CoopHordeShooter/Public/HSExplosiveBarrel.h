@@ -10,6 +10,7 @@ class UHSHealthComponent;
 class UStaticMeshComponent;
 class URadialForceComponent;
 class UParticleSystem;
+class USoundCue;
 
 UCLASS()
 class COOPHORDESHOOTER_API AHSExplosiveBarrel : public AActor
@@ -45,6 +46,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "FX")
 	UMaterialInterface* ExplodedMaterial;
+
+	UPROPERTY(EditDefaultsOnly, Category = "FX")
+	USoundCue* ExplosionSFX;
 
 	UFUNCTION()
 	void OnHealthChanged(UHSHealthComponent* HealthComponent, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
