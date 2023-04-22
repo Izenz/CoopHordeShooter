@@ -74,11 +74,20 @@ void AHSCharacter::MoveRight(float Value)
 void AHSCharacter::BeginCrouch()
 {
 	Crouch();
+	if(CurrentWeapon)
+	{
+		CurrentWeaponBulletSpread = CurrentWeapon->GetBulletspread();
+		CurrentWeapon->SetBulletSpread(0.0f);
+	}
 }
 
 void AHSCharacter::EndCrouch()
 {
 	UnCrouch();
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SetBulletSpread(CurrentWeaponBulletSpread);
+	}
 }
 
 void AHSCharacter::BeginJump()

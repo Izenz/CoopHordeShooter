@@ -62,6 +62,8 @@ protected:
 	UPROPERTY(Replicated)
 	AHSWeapon* CurrentWeapon;
 
+	float CurrentWeaponBulletSpread;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<AHSWeapon> StarterWeaponClass;
 

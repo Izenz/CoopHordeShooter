@@ -156,6 +156,17 @@ void AHSWeapon::StopShooting()
 	GetWorldTimerManager().ClearTimer(TimerHandle_TimeBetweenShots);
 }
 
+void AHSWeapon::SetBulletSpread(float NewBulletSpread)
+{
+	static const float MaxBulletSpread = 5.0f;
+	BulletSpread = FMath::Clamp(NewBulletSpread, 0.0f, MaxBulletSpread);
+}
+
+float AHSWeapon::GetBulletspread() const
+{
+	return BulletSpread;
+}
+
 void AHSWeapon::PlayShootVFX(FVector BulletTrailEndPoint)
 {
 	if (MuzzleVFX)

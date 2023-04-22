@@ -122,4 +122,8 @@ public:
 
 	void StopShooting();
 
+	void SetBulletSpread(float NewBulletSpread);
+
+	float GetBulletspread() const;
+
 };
