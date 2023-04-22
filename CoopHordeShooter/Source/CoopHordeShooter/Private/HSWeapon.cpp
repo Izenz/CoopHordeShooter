@@ -12,6 +12,7 @@
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 #include "Sound/SoundCue.h"
+#include "HSMyWidget.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -23,10 +24,18 @@ FAutoConsoleVariableRef CVARDebugWeaponDrawing(
 void AHSWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	BulletRange = 10000;
 	HeadshotMultiplier = 1.5;
 	ShootCooldown = 60 / Cadency;
+
+	if (CrosshairWidget && !Crosshair)
+	{
+		APlayerController* APC = UGameplayStatics::GetPlayerController(this, 0);
+
+		Crosshair = CreateWidget<UHSMyWidget>(APC, CrosshairWidget);
+		Crosshair->AddToViewport();
+	}
 }
 
 
@@ -90,6 +99,10 @@ void AHSWeapon::Shoot()
 			if (!UHSHealthComponent::IsFriendly(MyOwner, HitActor))
 			{
 				UGameplayStatics::PlaySound2D(this, EnemyHitSFX);
+				if (Crosshair != nullptr)
+				{
+					Crosshair->PlayWidgetAnimation();
+				}
 			}
 			
 			PlayImpactVFX(SurfaceType, Hit.ImpactPoint);
