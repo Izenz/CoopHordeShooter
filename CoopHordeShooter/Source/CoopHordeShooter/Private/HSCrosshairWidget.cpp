@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "HSMyWidget.h"
-#include "WidgetAnimation.h"
+#include "HSCrosshairWidget.h"
 
 
 
-void UHSMyWidget::NativeConstruct()
+
+void UHSCrosshairWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 }

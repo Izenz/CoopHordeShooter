@@ -12,7 +12,7 @@
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 #include "Sound/SoundCue.h"
-#include "HSMyWidget.h"
+#include "HSCrosshairWidget.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -33,7 +33,7 @@ void AHSWeapon::BeginPlay()
 	{
 		APlayerController* APC = UGameplayStatics::GetPlayerController(this, 0);
 
-		Crosshair = CreateWidget<UHSMyWidget>(APC, CrosshairWidget);
+		Crosshair = CreateWidget<UHSCrosshairWidget>(APC, CrosshairWidget);
 		Crosshair->AddToViewport();
 	}
 }

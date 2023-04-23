@@ -4,6 +4,7 @@
 #include "HSPowerupActor.h"
 #include "Components/SphereComponent.h"
 #include "Components/DecalComponent.h"
+#include "GameFramework/Pawn.h"
 #include "TimerManager.h"
 
 // Sets default values
@@ -52,7 +53,10 @@ void AHSPickupActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
 
-	if (HasAuthority() && PowerupInstance)
+	APawn* MyPawn = Cast<APawn>(OtherActor);
+	if (MyPawn == nullptr)	return;
+
+	if (OtherActor-> HasAuthority() && PowerupInstance && MyPawn->IsPlayerControlled())
 	{
 		PowerupInstance->ActivatePowerup(OtherActor);
 		PowerupInstance = nullptr;

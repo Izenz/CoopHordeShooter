@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "HSMyWidget.generated.h"
+#include "HSCrosshairWidget.generated.h"
 
 /**
  *
  */
 UCLASS()
-class COOPHORDESHOOTER_API UHSMyWidget : public UUserWidget
+class COOPHORDESHOOTER_API UHSCrosshairWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

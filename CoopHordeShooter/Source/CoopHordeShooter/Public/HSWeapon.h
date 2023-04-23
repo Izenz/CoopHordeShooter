@@ -11,7 +11,7 @@ class UDamageType;
 class UParticleSystem;
 class UCameraShake;
 class USoundCue;
-class UHSMyWidget;
+class UHSCrosshairWidget;
 
 USTRUCT()
 struct FHitScanTrace
@@ -111,10 +111,10 @@ protected:
 		void OnRep_HitScanTrace();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	TSubclassOf<UHSMyWidget> CrosshairWidget;
+	TSubclassOf<UHSCrosshairWidget> CrosshairWidget;
 
 	UPROPERTY()
-	UHSMyWidget* Crosshair;
+	UHSCrosshairWidget* Crosshair;
 
 public:
 
