@@ -67,7 +67,7 @@ void AHSWeapon::Shoot()
 		MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
 		FVector ShotDirection = EyeRotation.Vector();
-		
+
 		// Add spread
 		float HalfRad = FMath::DegreesToRadians(BulletSpread);
 		ShotDirection = FMath::VRandCone(ShotDirection, HalfRad, HalfRad);
@@ -92,25 +92,24 @@ void AHSWeapon::Shoot()
 			AActor* HitActor = Hit.GetActor();
 			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 
-			float HitDamage = SurfaceType == SURFACE_FLESHVULNERABLE ? BaseDamage * HeadshotMultiplier : BaseDamage;
+			if (!UHSHealthComponent::IsDead(HitActor) && !UHSHealthComponent::IsFriendly(MyOwner, HitActor)) {
 
-			UGameplayStatics::ApplyPointDamage(HitActor, HitDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), MyOwner, DamageType);
+				float HitDamage = SurfaceType == SURFACE_FLESHVULNERABLE ? BaseDamage * HeadshotMultiplier : BaseDamage;
+				UGameplayStatics::ApplyPointDamage(HitActor, HitDamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), MyOwner, DamageType);
 
-			if (!UHSHealthComponent::IsFriendly(MyOwner, HitActor))
-			{
 				UGameplayStatics::PlaySound2D(this, EnemyHitSFX);
 				if (Crosshair != nullptr)
 				{
 					Crosshair->PlayWidgetAnimation();
 				}
-			}
-			
-			PlayImpactVFX(SurfaceType, Hit.ImpactPoint);
 
+			}
+
+			PlayImpactVFX(SurfaceType, Hit.ImpactPoint);
 			BulletTrailEndPoint = Hit.ImpactPoint;
 		}
 
-		if(DebugWeaponDrawing > 0)		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
+		if (DebugWeaponDrawing > 0)		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, FColor::White, false, 1.0f, 0, 1.0f);
 
 		PlayShootVFX(BulletTrailEndPoint);
 

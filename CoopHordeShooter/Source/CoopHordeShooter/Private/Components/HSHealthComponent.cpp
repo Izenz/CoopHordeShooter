@@ -90,6 +90,16 @@ bool UHSHealthComponent::IsFriendly(AActor* ActorA, AActor* ActorB)
 	return HealthCompA->TeamId == HealthCompB->TeamId;
 }
 
+bool UHSHealthComponent::IsDead(AActor* OtherActor)
+{
+	if (OtherActor == nullptr)	return true;
+
+	UHSHealthComponent* HealthComp = Cast<UHSHealthComponent>(OtherActor->GetComponentByClass(UHSHealthComponent::StaticClass()));
+	if (HealthComp == nullptr)	return true;
+
+	return HealthComp->bIsDead;
+}
+
 void UHSHealthComponent::Heal(float HealAmount)
 {
 	if (HealAmount <= 0.0f || Health <= 0.0f)	return;
