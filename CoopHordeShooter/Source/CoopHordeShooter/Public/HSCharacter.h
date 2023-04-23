@@ -90,4 +90,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Player")
 	void StopShooting();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Player")
+	void UpdatePlayerScore(float NewScore);
 };

@@ -13,6 +13,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Sound/SoundCue.h"
 #include "HSCrosshairWidget.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 static int32 DebugWeaponDrawing = 0;
 FAutoConsoleVariableRef CVARDebugWeaponDrawing(
@@ -29,11 +30,14 @@ void AHSWeapon::BeginPlay()
 	HeadshotMultiplier = 1.5;
 	ShootCooldown = 60 / Cadency;
 
+	if (GetWorld()->GetNetMode() == NM_DedicatedServer)	return;
+
 	if (CrosshairWidget && !Crosshair)
 	{
 		APlayerController* APC = UGameplayStatics::GetPlayerController(this, 0);
 
 		Crosshair = CreateWidget<UHSCrosshairWidget>(APC, CrosshairWidget);
+		
 		Crosshair->AddToViewport();
 	}
 }

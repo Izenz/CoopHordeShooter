@@ -6,9 +6,6 @@
 #include "GameFramework/PlayerState.h"
 #include "HSPlayerState.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class COOPHORDESHOOTER_API AHSPlayerState : public APlayerState
 {
@@ -18,6 +15,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
 	void AddScore(float ScoreDelta);
-	
-	
+
+	UFUNCTION()
+	virtual void OnRep_Score() override;
 };
