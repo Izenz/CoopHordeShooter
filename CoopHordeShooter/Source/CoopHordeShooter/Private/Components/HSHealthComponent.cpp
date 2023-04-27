@@ -2,6 +2,7 @@
 
 #include "HSHealthComponent.h"
 #include "HSGameMode.h"
+#include "HSPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -9,6 +10,7 @@
 UHSHealthComponent::UHSHealthComponent()
 {
 	MaxHealth = 100;
+	Heal(MaxHealth);
 	bIsDead = false;
 	SetIsReplicated(true);
 
@@ -97,7 +99,7 @@ bool UHSHealthComponent::IsDead(AActor* OtherActor)
 	UHSHealthComponent* HealthComp = Cast<UHSHealthComponent>(OtherActor->GetComponentByClass(UHSHealthComponent::StaticClass()));
 	if (HealthComp == nullptr)	return true;
 
-	return HealthComp->bIsDead;
+	return HealthComp->Health <= 0.0f;
 }
 
 void UHSHealthComponent::Heal(float HealAmount)

@@ -2,6 +2,7 @@
 
 #include "HSCharacter.h"
 #include "HSWeapon.h"
+#include "HSPlayerController.h"
 #include "Components/HSHealthComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -126,6 +127,11 @@ void AHSCharacter::StopShooting()
 	}
 }
 
+const UHSHealthComponent* AHSCharacter::GetHealthComp() const
+{
+	return HealthComp;
+}
+
 void AHSCharacter::OnHealthChanged(UHSHealthComponent* HealthComponent, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
 {
 	if (Health <= 0.0f && !bIsDead)
@@ -137,7 +143,13 @@ void AHSCharacter::OnHealthChanged(UHSHealthComponent* HealthComponent, float He
 		GetMovementComponent()->StopMovementImmediately();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		
+		if(AHSPlayerController* PC = Cast<AHSPlayerController>(Controller))
+		{
+			PC->OnPlayerKilled(HealthComp);
+		}
+
 		DetachFromControllerPendingDestroy();
+
 		SetLifeSpan(5.0f);
 		CurrentWeapon->SetLifeSpan(5.0f);
 	}

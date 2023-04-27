@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HSPlayerState.h"
-#include "HSCharacter.h"
+#include "HSPlayerController.h"
 
 
 
@@ -13,13 +13,10 @@ void AHSPlayerState::AddScore(float ScoreDelta)
 
 void AHSPlayerState::OnRep_Score()
 {
-	// Actualizar HUD
-	if (APlayerController* AC = Cast<APlayerController>(GetOwner()))
+	// Update HUD
+	if (AHSPlayerController* AC = Cast<AHSPlayerController>(GetOwner()))
 	{
-		if (AHSCharacter* MyChar = Cast<AHSCharacter>(AC->GetPawn()))
-		{
-			MyChar->UpdatePlayerScore(Score);
-		}
+		AC->UpdatePlayerScore(Score);
 	}
 	
 }
