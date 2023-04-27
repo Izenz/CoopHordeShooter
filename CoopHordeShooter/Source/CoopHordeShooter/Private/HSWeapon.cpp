@@ -118,7 +118,6 @@ void AHSWeapon::Shoot()
 		PlayShootVFX(BulletTrailEndPoint);
 
 		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleSocketName);
-		UGameplayStatics::PlaySoundAtLocation(this, ShootSFX, MuzzleLocation);
 
 		if (HasAuthority())
 		{
@@ -196,6 +195,10 @@ void AHSWeapon::PlayShootVFX(FVector BulletTrailEndPoint)
 		{
 			PC->ClientPlayCameraShake(FireCamShake);
 		}
+	}
+	if (ShootSFX)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ShootSFX, MuzzleLocation);
 	}
 }
 
