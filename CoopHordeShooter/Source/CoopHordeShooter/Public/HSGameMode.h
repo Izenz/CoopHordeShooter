@@ -28,6 +28,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GameMode")
 	float TimeBetweenWaves;
 
+	bool bGameInProgress = false;
+
 protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "GameMode")
@@ -51,6 +53,10 @@ protected:
 
 	void RestartDeadPlayers();
 	
+	void ResetGame();
+
+	void TriggerDeathScreen();
+
 public:
 
 	AHSGameMode();
@@ -62,4 +68,11 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "GameMode")
 	FOnActorKilled OnActorKilled;
 
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void BeginGame();
+
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void EndGame();
+
+	int32 GetWaveCount();
 };

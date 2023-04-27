@@ -3,21 +3,22 @@
 #include "HSGameMode.h"
 #include "HSGameState.h"
 #include "HSPlayerState.h"
+#include "HSPlayerController.h"
 #include "Components/HSHealthComponent.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
 
-
 AHSGameMode::AHSGameMode()
 {
 	WaveCount = 0;
-	TimeBetweenWaves = 2.0f;
+	TimeBetweenWaves = 3.0f;
 
 	GameStateClass = AHSGameState::StaticClass();
 	PlayerStateClass = AHSPlayerState::StaticClass();
 
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickInterval = 1.0f;
+
 }
 
 void AHSGameMode::StartWave()
@@ -51,6 +52,7 @@ void AHSGameMode::EndWave()
 
 void AHSGameMode::PrepareForNextWave()
 {
+	// Warm up
 	RestartDeadPlayers();
 
 	GetWorldTimerManager().SetTimer(TimerHandle_NextWaveStart, this, &AHSGameMode::StartWave, TimeBetweenWaves, false);
@@ -110,11 +112,18 @@ void AHSGameMode::CheckForAlivePlayers()
 
 void AHSGameMode::GameOver()
 {
-	EndWave();
+	if (bGameInProgress)
+	{
+		bGameInProgress = false;
 
-	SetWaveState(EWaveState::GameOver);
+		TriggerDeathScreen();
 
-	UE_LOG(LogTemp, Log, TEXT("Game over! No alive players remaining."));
+		GetWorldTimerManager().ClearTimer(TimerHandle_BotSpawner);
+
+		SetWaveState(EWaveState::GameOver);
+
+		UE_LOG(LogTemp, Log, TEXT("Game over! No alive players remaining."));
+	}
 }
 
 void AHSGameMode::SetWaveState(EWaveState NewState)
@@ -130,7 +139,7 @@ void AHSGameMode::RestartDeadPlayers()
 {
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{
-		APlayerController* PC = It->Get();
+		AHSPlayerController* PC = Cast<AHSPlayerController>(It->Get());
 		if (PC && PC->GetPawn() == nullptr)
 		{
 			RestartPlayer(PC);
@@ -141,14 +150,53 @@ void AHSGameMode::RestartDeadPlayers()
 void AHSGameMode::StartPlay()
 {
 	Super::StartPlay();
-
-	PrepareForNextWave();
+	SetWaveState(EWaveState::GamePaused);
 }
 
 void AHSGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	CheckWaveState();
-	CheckForAlivePlayers();
+	if (bGameInProgress)
+	{
+		CheckWaveState();
+		CheckForAlivePlayers();
+	}
 }
+
+void AHSGameMode::BeginGame()
+{
+	bGameInProgress = true;
+	
+	PrepareForNextWave();
+}
+
+void AHSGameMode::EndGame()
+{	
+	ResetGame();
+}
+
+int32 AHSGameMode::GetWaveCount()
+{
+	return WaveCount;
+}
+
+void AHSGameMode::ResetGame()
+{
+	bGameInProgress = false;
+	WaveCount = 0;
+
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	SetWaveState(EWaveState::GamePaused);
+}
+
+void AHSGameMode::TriggerDeathScreen()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	{
+		AHSPlayerController* PC = Cast<AHSPlayerController>(It->Get());
+		PC->DrawDeathScreen();
+	}
+}
+

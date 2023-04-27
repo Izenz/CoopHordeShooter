@@ -9,16 +9,22 @@
 UENUM(BlueprintType)
 enum class EWaveState : uint8
 {
+	// When in main menu. Awaits for event to start preparing waves
+	GamePaused,
+
+	// Warm up phase
 	PreparingWave,
 
 	// Spawn bots phase
 	WaveInProgress,
 
-	// Non-spawn phase
+	// Non-spawn phase. Waits for enemies or player to be wiped out.
 	WaitingToComplete,
 
+	// Enemies wiped out. 
 	WaveComplete,
 
+	// Player wiped out. Awaits for event to restart game.
 	GameOver,
 };
 
@@ -42,5 +48,4 @@ protected:
 public:
 
 	void SetWaveState(EWaveState NewState);
-	
 };
