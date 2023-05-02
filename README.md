@@ -55,7 +55,11 @@ Personal project developed for educational purpouses with Unreal Engine 4 that f
  
  # How to play with friends
  
- Work in progress
+ - Start the game and hit play on the menu.
+ - Open up the console command with `~` key.
+ - The person hosting the match (server) should type `open Blockout_P?listen`.
+ - The person joining an existing match should type `open SERVER_IP:7777`. Whereas `SERVER_IP` is the IP address of whoever is hosting the match.
+ - For testing purpouses it is possible to open two instances of the game on the same machine and join using `open 127.0.0.1`. No need to specify port in this case.
  
  # Engine Version
  Project developed and tested with version: 4.18.3
