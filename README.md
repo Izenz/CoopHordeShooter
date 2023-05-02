@@ -12,18 +12,18 @@ Personal project developed for educational purpouses with Unreal Engine 4 that f
  
  ## Playable Character
  
- Character controlled by every activate player. It has a base health 100 points and is able to walk, shoot, crouch and jump.
+ Character controlled by every active player. It has a base health 100 points and is able to walk, shoot, crouch and jump.
  
  ### Rifle Weapon
  
  Currently the only available weapon for the player. It has unlimited ammunition.
  There is no recoil but there is minor **bullet spread**.
- Players can fire it with left mouse button and aim with right mouse button.
+ Players can **fire** it with `left mouse button` and **aim** with `right mouse button`.
  
  ### Crouching
  
  Reduces weapon's bullet spread and cancels walking noise at the cost of movement speed.
- Players can crouch while holding left control button.
+ Players can **crouch** while holding `left control button`.
  
  ### Health Indicator
  
@@ -37,21 +37,21 @@ Personal project developed for educational purpouses with Unreal Engine 4 that f
  
  This enemy will roam around the map and chase any nearby players to try and self-destruct near them.
  It has a small area of effect when it explodes and its base damage is low. However, when near other balls its power escalates according to the number of nearby Tracker Balls, up to 4 times, dealing devastating damage to any players caught in the explosion.
- It awards no score points if it self destructs. 
+ It awards no score points if it **self destructs**. 
  
  ### Rifle Soldier
  
- Less common enemy. This enemy will chase the player and try to find cover to shoot the player from a distance. When its hp is low, it will try to flee and find a safe spot to recover its health.
+ Less common enemy. This enemy will chase the player and try to find cover to **shoot the player from a distance**. When its hp is low, it will try to flee and find a safe spot to recover its health.
  
  ## Power Ups
  
  ### Speed-up
  
- Enhances the movement speed of the player activating it for a moderate amount of time.
+ **Enhances movement speed** of the player activating it for a moderate amount of time.
  
  ### Healing
  
- Provides a healing buff to the player who activates it. This healing buff will recover a set amount of missing health points after a small delay, twice, before expiring.
+ Provides a **healing buff** to the player who activates it. This healing buff will recover a set amount of missing health points after a small delay, twice, before expiring.
  
  # How to play with friends
  
